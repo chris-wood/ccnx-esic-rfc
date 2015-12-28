@@ -1,0 +1,392 @@
+
+
+
+
+ICNRG Working Group                                              C. Wood
+Internet-Draft                                                PARC, Inc.
+Intended status: Informational                         November 14, 2015
+Expires: May 17, 2016
+
+
+                       CCNx Packet Encapsulation
+                      draft-wood-icnrg-packetencap
+
+Abstract
+
+   This document describes a mechanism to encrypt CCNx TLVs using
+   encapsulation.  CCNx TLVs (e.g., message payloads) are created and
+   then encrypted and wrapped in a new type of TLV for encapsulation.
+   These wrapper TLVs are given the new type T_ENCAP.  This
+   encapsulation mechanism is used to encrypt CCNx messages i(i.e.,
+   Interests and Content Objects) for transport between consumers and
+   producers.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on May 17, 2016.
+
+Copyright Notice
+
+   Copyright (c) 2015 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+
+
+
+Wood                      Expires May 17, 2016                  [Page 1]
+
+Internet-Draft          CCNx-PacketEncapsulation           November 2015
+
+
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+     1.1.  Conventions and Terminology . . . . . . . . . . . . . . .   3
+   2.  Encrypted Types . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  CCNx Message Encapsulation  . . . . . . . . . . . . . . . . .   3
+     3.1.  Interest Encapsulation  . . . . . . . . . . . . . . . . .   4
+     3.2.  Content Object Wrapping . . . . . . . . . . . . . . . . .   5
+   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
+   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   6
+     5.2.  Informative References  . . . . . . . . . . . . . . . . .   6
+   Appendix A.  Test Vectors . . . . . . . . . . . . . . . . . . . .   7
+     A.1.  Sample Encryption TLVs  . . . . . . . . . . . . . . . . .   7
+     A.2.  Interest Encapsulation Examples . . . . . . . . . . . . .   7
+     A.3.  Content Object Encapsulation Examples . . . . . . . . . .   7
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
+
+1.  Introduction
+
+   CCNx messages are designed around authentication, not
+   confidentiality.  The standard CCNx message format includes a fixed
+   header, optional header TLVs, message body TLV, and optional
+   validation section [MESSAGES].  In many applications, the body of a
+   Content Object (or Interest), i.e., the Payload TLV, are said to be
+   encrypted for end-to-end confidentiality between a producer and
+   consumer.  However, there does not exist a standard way by which such
+   TLVs are encrypted.
+
+   This document specifies a CCNx TLV encapsulation mechanism which can
+   be used to encrypt any CCNx TLV using standard symmetric-key
+   encryption.  Encrypted TLVs, called TEs (encrypted types), are
+   wrapped in encapsulation TLVs of the type T_ENCAP.  These wrapper
+   TLVs are then inserted into other TLVs for transport.  This
+   encapsulation TLV will be used to an encrypt entire CCNx messages
+   (i.e., Interests or Content Objects) for transport between a consumer
+   and producer.  In this case, the "outer" message TLV, i.e., the CCNx
+   message TLV which contains the T_ENCAP internally, is given its own
+   routable CCNx Name and optional Validation information.  The details
+   of which will be specified later in this document.
+
+   The mechanism by which this symmetric key is obtained is outside the
+   scope of this document; These keys could be pre-shared or derived
+   from an online key-exchange protocol [CCNxKE].
+
+
+
+
+Wood                      Expires May 17, 2016                  [Page 2]
+
+Internet-Draft          CCNx-PacketEncapsulation           November 2015
+
+
+1.1.  Conventions and Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in RFC
+   2119 [RFC2119].
+
+   The following terms are used:
+
+   o  Inner TLV: The CCNx message that is encrypted an contained inside
+      a T_ENCAP TLV.
+
+   o  Outer TLV: The TLV which contains, internally, a T_ENCAP TLV.
+
+   o  Encapsulation Name: A CCNx Name which can be used to route an
+      encapsulated CCNx Message and perform decryption.
+
+2.  Encrypted Types
+
+   Encryption of a TLV is done by encapsulation.  A new T_ENCAP TLV is
+   created and used as a security envelope for the plaintext TLV(s).
+   Specifically, the ciphertext that results from encrypting one or more
+   TLVs is inserted as the value (V) of the T_ENCAP TLV.  This procedure
+   is shown pictorially below.
+
+   +------------------+
+   | T1 | L1 |   V1   |
+   +------------------+
+            ||
+            \/
+   +----------------------------+
+   | T2 | L2 |  Enc((T1,L1,V1)) |
+   +----------------------------+
+
+   In this figure, T1 can be any TLV and T2 is T_ENCAP.
+
+3.  CCNx Message Encapsulation
+
+   To encapsulate an Interest or Content Object, the corresponding CCNx
+   Message TLV is encapsulated using a T_ENCAP TLV.  However, the CCNx
+   Message TLV contains information such as the packet Name, which is
+   used for routing, it is necessary to create encapsulation information
+   to transport this (now encrypted) message.  This encapsulation
+   information differs for Interests and Content Objects.
+
+   The resulting CCNx Message packet will have a structure similar to
+   the following:
+
+
+
+
+Wood                      Expires May 17, 2016                  [Page 3]
+
+Internet-Draft          CCNx-PacketEncapsulation           November 2015
+
+
+   PACKET := FixedHeader [PerHopHeaders] OuterMessage [Validation]
+   OuterMessage := EncapsulationName *OuterMetadata InnerMessage
+   OuterMetadata := ExpiryTime / RecommendedCacheTime / EndChunkNumber
+   InnerMessage := The encrypted message that is encapsulated in a
+                   T_ENCAP TLV
+   Validation := <described in the following sections>
+
+3.1.  Interest Encapsulation
+
+   To encrypt an Interest using encapsulation, the outer TLV needs to
+   contain an Encapsulation Name.  The Encapsulation Name must contain
+   at least the following information:
+
+   1.  A routable prefix (/prefix/)
+
+   2.  An identifier for the Encapsulation decryption key and decryption
+       salt.  Specifically, this identifier is a tuple (K, Salt), where
+       K is the decryption key KeyId and Salt is the input to the
+       decryption algorithm.
+
+   3.  The Nonce used to initialize the decryption algorithm.  This is
+       the same as the initialization vector (IV).
+
+   Collectively, the Encapsulation Name conveys the tuple (prefix, K,
+   Salt, Nonce).  This information is put into the Encapsulation Name
+   because it binds the decryption key, salt, and nonce to the
+   encapsulated message.  For every encrypted CCNx Message C there
+   exists at exactly one tuple (K, Salt, Nonce) that can be used to
+   decrypt C.
+
+   The following algorithm is used to encapsulate an Interest using this
+   approach.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wood                      Expires May 17, 2016                  [Page 4]
+
+Internet-Draft          CCNx-PacketEncapsulation           November 2015
+
+
+Input: A plaintext CCNx Message TLV for an Interest I, and tuple
+       (prefix, K, Salt, Nonce).
+Output: An Interest I' with the encrypted I inside.
+
+1. Create the Encapsulation Name EN as: /prefix/K/salt/Nonce.
+2. Create a new Interest I' with the name EN, followed immediately by
+   the TLV I contained inside a T_ENCAP TLV.
+3. Create and append to I' a ValidationAlgorithm algorithm with the
+   T_VALIDATION_ALG type that specifies Interest encapsulation
+   (**VALUE TBD**).
+4. Encrypt all of I' using AES-GCM. The plaintext for this encryption
+   procedure is only the V of the T_ENCAP TLV; The rest of message is
+   the AAD. Let (C, T) be the output of this encryption process. Replace
+   the V of the T_ENCAP TLV with C.
+5. Create and append to I' a ValidationPayload that contains T.
+6. Return I'.
+
+3.2.  Content Object Wrapping
+
+   Similar to Interests, an encapsulated Content Object needs an
+   Encapsulation Name.  However, unlike Interests, the actual decryption
+   key identifier, salt, and nonce are not contained in this
+   Encapsulation Name.  This is because the encryption KeyId, Salt, and
+   Nonce may be different than what was used for the corresponding
+   Interest (if it was also encrypted).  Also, the outer TLV of an
+   encapsulated Content Object may also include additional cache or
+   control directives that exist outside of the T_ENCAP wrapper.
+
+   The following algorithm is used to encapsulate a Content Object using
+   this approach.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wood                      Expires May 17, 2016                  [Page 5]
+
+Internet-Draft          CCNx-PacketEncapsulation           November 2015
+
+
+Input: An Interest I with name N, A plaintext CCNx Message TLV for a
+       Content Object CO, and decryption information tuple
+       (K, Salt, Nonce).
+Output: A Content Object CO' with the encrypted CO inside.
+
+1. Create the Encapsulation Name EN such that it matches N (the
+   Interest Name).
+2. Create a new Content Object CO' with the name EN, followed
+   immediately by the TLV CO contained inside a T_ENCAP TLV.
+3. Create and append to CO' a ValidationAlgorithm algorithm with the
+   T_VALIDATION_ALG type that specifies Content Object encapsulation
+   (**VALUE TBD**), and a T_KEY_ID value that contains (K, Nonce, Salt).
+4. Encrypt all of CO' using AES-GCM. The plaintext for this encryption
+   procedure is only the V of the T_ENCAP TLV; The rest of message is
+   the AAD. Let (C, T) be the output of this encryption process. Replace
+   the V of the T_ENCAP TLV with C.
+5. Create and append to CO' a ValidationPayload that contains T.
+6. Return CO'.
+
+4.  Security Considerations
+
+   TODO.
+
+5.  References
+
+5.1.  Normative References
+
+   [CCNxKE]   "TODO", n.d., <TODO>.
+
+   [MESSAGES]
+              "TODO", n.d., <TODO>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
+
+5.2.  Informative References
+
+   [RFC5389]  Rosenberg, J., Mahy, R., Matthews, P., and D. Wing,
+              "Session Traversal Utilities for NAT (STUN)", RFC 5389,
+              DOI 10.17487/RFC5389, October 2008,
+              <http://www.rfc-editor.org/info/rfc5389>.
+
+
+
+
+
+
+
+
+Wood                      Expires May 17, 2016                  [Page 6]
+
+Internet-Draft          CCNx-PacketEncapsulation           November 2015
+
+
+Appendix A.  Test Vectors
+
+A.1.  Sample Encryption TLVs
+
+   TODO
+
+A.2.  Interest Encapsulation Examples
+
+   TODO
+
+A.3.  Content Object Encapsulation Examples
+
+   TODO
+
+Author's Address
+
+   Christopher A. Wood
+   PARC, Inc.
+
+   Email: christopher.wood@parc.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wood                      Expires May 17, 2016                  [Page 7]

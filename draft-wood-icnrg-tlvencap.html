@@ -1,0 +1,626 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head profile="http://www.w3.org/2006/03/hcard http://dublincore.org/documents/2008/08/04/dc-html/">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+
+  <title>CCNx Packet Encapsulation</title>
+
+  <style type="text/css" title="Xml2Rfc (sans serif)">
+  /*<![CDATA[*/
+	  a {
+	  text-decoration: none;
+	  }
+      /* info code from SantaKlauss at http://www.madaboutstyle.com/tooltip2.html */
+      a.info {
+          /* This is the key. */
+          position: relative;
+          z-index: 24;
+          text-decoration: none;
+      }
+      a.info:hover {
+          z-index: 25;
+          color: #FFF; background-color: #900;
+      }
+      a.info span { display: none; }
+      a.info:hover span.info {
+          /* The span will display just on :hover state. */
+          display: block;
+          position: absolute;
+          font-size: smaller;
+          top: 2em; left: -5em; width: 15em;
+          padding: 2px; border: 1px solid #333;
+          color: #900; background-color: #EEE;
+          text-align: left;
+      }
+	  a.smpl {
+	  color: black;
+	  }
+	  a:hover {
+	  text-decoration: underline;
+	  }
+	  a:active {
+	  text-decoration: underline;
+	  }
+	  address {
+	  margin-top: 1em;
+	  margin-left: 2em;
+	  font-style: normal;
+	  }
+	  body {
+	  color: black;
+	  font-family: verdana, helvetica, arial, sans-serif;
+	  font-size: 10pt;
+	  max-width: 55em;
+	  
+	  }
+	  cite {
+	  font-style: normal;
+	  }
+	  dd {
+	  margin-right: 2em;
+	  }
+	  dl {
+	  margin-left: 2em;
+	  }
+	
+	  ul.empty {
+	  list-style-type: none;
+	  }
+	  ul.empty li {
+	  margin-top: .5em;
+	  }
+	  dl p {
+	  margin-left: 0em;
+	  }
+	  dt {
+	  margin-top: .5em;
+	  }
+	  h1 {
+	  font-size: 14pt;
+	  line-height: 21pt;
+	  page-break-after: avoid;
+	  }
+	  h1.np {
+	  page-break-before: always;
+	  }
+	  h1 a {
+	  color: #333333;
+	  }
+	  h2 {
+	  font-size: 12pt;
+	  line-height: 15pt;
+	  page-break-after: avoid;
+	  }
+	  h3, h4, h5, h6 {
+	  font-size: 10pt;
+	  page-break-after: avoid;
+	  }
+	  h2 a, h3 a, h4 a, h5 a, h6 a {
+	  color: black;
+	  }
+	  img {
+	  margin-left: 3em;
+	  }
+	  li {
+	  margin-left: 2em;
+	  margin-right: 2em;
+	  }
+	  ol {
+	  margin-left: 2em;
+	  margin-right: 2em;
+	  }
+	  ol p {
+	  margin-left: 0em;
+	  }
+	  p {
+	  margin-left: 2em;
+	  margin-right: 2em;
+	  }
+	  pre {
+	  margin-left: 3em;
+	  background-color: lightyellow;
+	  padding: .25em;
+	  }
+	  pre.text2 {
+	  border-style: dotted;
+	  border-width: 1px;
+	  background-color: #f0f0f0;
+	  width: 69em;
+	  }
+	  pre.inline {
+	  background-color: white;
+	  padding: 0em;
+	  }
+	  pre.text {
+	  border-style: dotted;
+	  border-width: 1px;
+	  background-color: #f8f8f8;
+	  width: 69em;
+	  }
+	  pre.drawing {
+	  border-style: solid;
+	  border-width: 1px;
+	  background-color: #f8f8f8;
+	  padding: 2em;
+	  }
+	  table {
+	  margin-left: 2em;
+	  }
+	  table.tt {
+	  vertical-align: top;
+	  }
+	  table.full {
+	  border-style: outset;
+	  border-width: 1px;
+	  }
+	  table.headers {
+	  border-style: outset;
+	  border-width: 1px;
+	  }
+	  table.tt td {
+	  vertical-align: top;
+	  }
+	  table.full td {
+	  border-style: inset;
+	  border-width: 1px;
+	  }
+	  table.tt th {
+	  vertical-align: top;
+	  }
+	  table.full th {
+	  border-style: inset;
+	  border-width: 1px;
+	  }
+	  table.headers th {
+	  border-style: none none inset none;
+	  border-width: 1px;
+	  }
+	  table.left {
+	  margin-right: auto;
+	  }
+	  table.right {
+	  margin-left: auto;
+	  }
+	  table.center {
+	  margin-left: auto;
+	  margin-right: auto;
+	  }
+	  caption {
+	  caption-side: bottom;
+	  font-weight: bold;
+	  font-size: 9pt;
+	  margin-top: .5em;
+	  }
+	
+	  table.header {
+	  border-spacing: 1px;
+	  width: 95%;
+	  font-size: 10pt;
+	  color: white;
+	  }
+	  td.top {
+	  vertical-align: top;
+	  }
+	  td.topnowrap {
+	  vertical-align: top;
+	  white-space: nowrap; 
+	  }
+	  table.header td {
+	  background-color: gray;
+	  width: 50%;
+	  }
+	  table.header a {
+	  color: white;
+	  }
+	  td.reference {
+	  vertical-align: top;
+	  white-space: nowrap;
+	  padding-right: 1em;
+	  }
+	  thead {
+	  display:table-header-group;
+	  }
+	  ul.toc, ul.toc ul {
+	  list-style: none;
+	  margin-left: 1.5em;
+	  margin-right: 0em;
+	  padding-left: 0em;
+	  }
+	  ul.toc li {
+	  line-height: 150%;
+	  font-weight: bold;
+	  font-size: 10pt;
+	  margin-left: 0em;
+	  margin-right: 0em;
+	  }
+	  ul.toc li li {
+	  line-height: normal;
+	  font-weight: normal;
+	  font-size: 9pt;
+	  margin-left: 0em;
+	  margin-right: 0em;
+	  }
+	  li.excluded {
+	  font-size: 0pt;
+	  }
+	  ul p {
+	  margin-left: 0em;
+	  }
+	
+	  .comment {
+	  background-color: yellow;
+	  }
+	  .center {
+	  text-align: center;
+	  }
+	  .error {
+	  color: red;
+	  font-style: italic;
+	  font-weight: bold;
+	  }
+	  .figure {
+	  font-weight: bold;
+	  text-align: center;
+	  font-size: 9pt;
+	  }
+	  .filename {
+	  color: #333333;
+	  font-weight: bold;
+	  font-size: 12pt;
+	  line-height: 21pt;
+	  text-align: center;
+	  }
+	  .fn {
+	  font-weight: bold;
+	  }
+	  .hidden {
+	  display: none;
+	  }
+	  .left {
+	  text-align: left;
+	  }
+	  .right {
+	  text-align: right;
+	  }
+	  .title {
+	  color: #990000;
+	  font-size: 18pt;
+	  line-height: 18pt;
+	  font-weight: bold;
+	  text-align: center;
+	  margin-top: 36pt;
+	  }
+	  .vcardline {
+	  display: block;
+	  }
+	  .warning {
+	  font-size: 14pt;
+	  background-color: yellow;
+	  }
+	
+	
+	  @media print {
+	  .noprint {
+		display: none;
+	  }
+	
+	  a {
+		color: black;
+		text-decoration: none;
+	  }
+	
+	  table.header {
+		width: 90%;
+	  }
+	
+	  td.header {
+		width: 50%;
+		color: black;
+		background-color: white;
+		vertical-align: top;
+		font-size: 12pt;
+	  }
+	
+	  ul.toc a::after {
+		content: leader('.') target-counter(attr(href), page);
+	  }
+	
+	  ul.ind li li a {
+		content: target-counter(attr(href), page);
+	  }
+	
+	  .print2col {
+		column-count: 2;
+		-moz-column-count: 2;
+		column-fill: auto;
+	  }
+	  }
+	
+	  @page {
+	  @top-left {
+		   content: "Internet-Draft"; 
+	  } 
+	  @top-right {
+		   content: "December 2010"; 
+	  } 
+	  @top-center {
+		   content: "Abbreviated Title";
+	  } 
+	  @bottom-left {
+		   content: "Doe"; 
+	  } 
+	  @bottom-center {
+		   content: "Expires June 2011"; 
+	  } 
+	  @bottom-right {
+		   content: "[Page " counter(page) "]"; 
+	  } 
+	  }
+	
+	  @page:first { 
+		@top-left {
+		  content: normal;
+		}
+		@top-right {
+		  content: normal;
+		}
+		@top-center {
+		  content: normal;
+		}
+	  }
+  /*]]>*/
+  </style>
+
+  <link href="#rfc.toc" rel="Contents"/>
+<link href="#rfc.section.1" rel="Chapter" title="1 Introduction"/>
+<link href="#rfc.section.1.1" rel="Chapter" title="1.1 Conventions and Terminology"/>
+<link href="#rfc.section.2" rel="Chapter" title="2 Encrypted Types"/>
+<link href="#rfc.section.3" rel="Chapter" title="3 CCNx Message Encapsulation"/>
+<link href="#rfc.section.3.1" rel="Chapter" title="3.1 Interest Encapsulation"/>
+<link href="#rfc.section.3.2" rel="Chapter" title="3.2 Content Object Wrapping"/>
+<link href="#rfc.section.4" rel="Chapter" title="4 Security Considerations"/>
+<link href="#rfc.references" rel="Chapter" title="5 References"/>
+<link href="#rfc.references.1" rel="Chapter" title="5.1 Normative References"/>
+<link href="#rfc.references.2" rel="Chapter" title="5.2 Informative References"/>
+<link href="#rfc.appendix.A" rel="Chapter" title="A Test Vectors"/>
+<link href="#rfc.appendix.A.1" rel="Chapter" title="A.1 Sample Encryption TLVs"/>
+<link href="#rfc.appendix.A.2" rel="Chapter" title="A.2 Interest Encapsulation Examples"/>
+<link href="#rfc.appendix.A.3" rel="Chapter" title="A.3 Content Object Encapsulation Examples"/>
+<link href="#rfc.authors" rel="Chapter"/>
+
+
+  <meta name="generator" content="xml2rfc version 2.5.1 - http://tools.ietf.org/tools/xml2rfc" />
+  <link rel="schema.dct" href="http://purl.org/dc/terms/" />
+
+  <meta name="dct.creator" content="Wood, C." />
+  <meta name="dct.identifier" content="urn:ietf:id:draft-wood-icnrg-packetencap" />
+  <meta name="dct.issued" scheme="ISO8601" content="2015-11-14" />
+  <meta name="dct.abstract" content="This document describes a mechanism to encrypt CCNx TLVs using encapsulation.  CCNx TLVs (e.g., message payloads) are created and then encrypted and wrapped in a new type of TLV for encapsulation. These wrapper TLVs are given the new type T_ENCAP. This encapsulation mechanism is used to encrypt CCNx messages i(i.e., Interests and Content Objects) for transport between consumers and producers." />
+  <meta name="description" content="This document describes a mechanism to encrypt CCNx TLVs using encapsulation.  CCNx TLVs (e.g., message payloads) are created and then encrypted and wrapped in a new type of TLV for encapsulation. These wrapper TLVs are given the new type T_ENCAP. This encapsulation mechanism is used to encrypt CCNx messages i(i.e., Interests and Content Objects) for transport between consumers and producers." />
+
+</head>
+
+<body>
+
+  <table class="header">
+    <tbody>
+    
+    	<tr>
+  <td class="left">ICNRG Working Group</td>
+  <td class="right">C. Wood</td>
+</tr>
+<tr>
+  <td class="left">Internet-Draft</td>
+  <td class="right">PARC, Inc.</td>
+</tr>
+<tr>
+  <td class="left">Intended status: Informational</td>
+  <td class="right">November 14, 2015</td>
+</tr>
+<tr>
+  <td class="left">Expires: May 17, 2016</td>
+  <td class="right"></td>
+</tr>
+
+    	
+    </tbody>
+  </table>
+
+  <p class="title">CCNx Packet Encapsulation<br />
+  <span class="filename">draft-wood-icnrg-packetencap</span></p>
+  
+  <h1 id="rfc.abstract">
+  <a href="#rfc.abstract">Abstract</a>
+</h1>
+<p>This document describes a mechanism to encrypt CCNx TLVs using encapsulation.  CCNx TLVs (e.g., message payloads) are created and then encrypted and wrapped in a new type of TLV for encapsulation. These wrapper TLVs are given the new type T_ENCAP. This encapsulation mechanism is used to encrypt CCNx messages i(i.e., Interests and Content Objects) for transport between consumers and producers.</p>
+<h1 id="rfc.status">
+  <a href="#rfc.status">Status of This Memo</a>
+</h1>
+<p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
+<p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at http://datatracker.ietf.org/drafts/current/.</p>
+<p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
+<p>This Internet-Draft will expire on May 17, 2016.</p>
+<h1 id="rfc.copyrightnotice">
+  <a href="#rfc.copyrightnotice">Copyright Notice</a>
+</h1>
+<p>Copyright (c) 2015 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
+<p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (http://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
+
+  
+  <hr class="noprint" />
+  <h1 class="np" id="rfc.toc"><a href="#rfc.toc">Table of Contents</a></h1>
+  <ul class="toc">
+
+  	<li>1.   <a href="#rfc.section.1">Introduction</a></li>
+<ul><li>1.1.   <a href="#rfc.section.1.1">Conventions and Terminology</a></li>
+</ul><li>2.   <a href="#rfc.section.2">Encrypted Types</a></li>
+<li>3.   <a href="#rfc.section.3">CCNx Message Encapsulation</a></li>
+<ul><li>3.1.   <a href="#rfc.section.3.1">Interest Encapsulation</a></li>
+<li>3.2.   <a href="#rfc.section.3.2">Content Object Wrapping</a></li>
+</ul><li>4.   <a href="#rfc.section.4">Security Considerations</a></li>
+<li>5.   <a href="#rfc.references">References</a></li>
+<ul><li>5.1.   <a href="#rfc.references.1">Normative References</a></li>
+<li>5.2.   <a href="#rfc.references.2">Informative References</a></li>
+</ul><li>Appendix A.   <a href="#rfc.appendix.A">Test Vectors</a></li>
+<ul><li>A.1.   <a href="#rfc.appendix.A.1">Sample Encryption TLVs</a></li>
+<li>A.2.   <a href="#rfc.appendix.A.2">Interest Encapsulation Examples</a></li>
+<li>A.3.   <a href="#rfc.appendix.A.3">Content Object Encapsulation Examples</a></li>
+</ul><li><a href="#rfc.authors">Author's Address</a></li>
+
+
+  </ul>
+
+  <h1 id="rfc.section.1"><a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a></h1>
+<p id="rfc.section.1.p.1">CCNx messages are designed around authentication, not confidentiality. The standard CCNx message format includes a fixed header, optional header TLVs, message body TLV, and optional validation section <a href="#MESSAGES">[MESSAGES]</a>. In many applications, the body of a Content Object (or Interest), i.e., the Payload TLV, are said to be encrypted for end-to-end confidentiality between a producer and consumer.  However, there does not exist a standard way by which such TLVs are encrypted.</p>
+<p id="rfc.section.1.p.2">This document specifies a CCNx TLV encapsulation mechanism which can be used to encrypt any CCNx TLV using standard symmetric-key encryption. Encrypted TLVs, called TEs (encrypted types), are wrapped in encapsulation TLVs of the type T_ENCAP. These wrapper TLVs are then inserted into other TLVs for transport. This encapsulation TLV will be used to an encrypt entire CCNx messages (i.e., Interests or Content Objects) for transport between a consumer and producer. In this case, the &#8220;outer&#8221; message TLV, i.e., the CCNx message TLV which contains the T_ENCAP internally, is given its own routable CCNx Name and optional Validation information. The details of which will be specified later in this document.</p>
+<p id="rfc.section.1.p.3">The mechanism by which this symmetric key is obtained is outside the scope of this document; These keys could be pre-shared or derived from an online key-exchange protocol <a href="#CCNxKE">[CCNxKE]</a>.</p>
+<h1 id="rfc.section.1.1"><a href="#rfc.section.1.1">1.1.</a> <a href="#conventions-and-terminology" id="conventions-and-terminology">Conventions and Terminology</a></h1>
+<p id="rfc.section.1.1.p.1">The key words &#8220;MUST&#8221;, &#8220;MUST NOT&#8221;, &#8220;REQUIRED&#8221;, &#8220;SHALL&#8221;, &#8220;SHALL NOT&#8221;, &#8220;SHOULD&#8221;, &#8220;SHOULD NOT&#8221;, &#8220;RECOMMENDED&#8221;, &#8220;NOT RECOMMENDED&#8221;, &#8220;MAY&#8221;, and &#8220;OPTIONAL&#8221; in this document are to be interpreted as described in RFC 2119 <a href="#RFC2119">[RFC2119]</a>.</p>
+<p id="rfc.section.1.1.p.2">The following terms are used:</p>
+<p/>
+
+<ul>
+  <li>Inner TLV: The CCNx message that is encrypted an contained inside a T_ENCAP TLV.</li>
+  <li>Outer TLV: The TLV which contains, internally, a T_ENCAP TLV.</li>
+  <li>Encapsulation Name: A CCNx Name which can be used to route an encapsulated CCNx Message and perform decryption.</li>
+</ul>
+<h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#encrypted-types" id="encrypted-types">Encrypted Types</a></h1>
+<p id="rfc.section.2.p.1">Encryption of a TLV is done by encapsulation. A new T_ENCAP TLV is created and used as a security envelope for the plaintext TLV(s). Specifically, the ciphertext that results from encrypting one or more TLVs is inserted as the value (V) of the T_ENCAP TLV. This procedure is shown pictorially below.</p>
+<pre>
++------------------+
+| T1 | L1 |   V1   |
++------------------+
+         ||
+         \/
++----------------------------+
+| T2 | L2 |  Enc((T1,L1,V1)) |
++----------------------------+
+</pre>
+<p id="rfc.section.2.p.2">In this figure, T1 can be any TLV and T2 is T_ENCAP.</p>
+<h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#ccnx-message-encapsulation" id="ccnx-message-encapsulation">CCNx Message Encapsulation</a></h1>
+<p id="rfc.section.3.p.1">To encapsulate an Interest or Content Object, the corresponding CCNx Message TLV is encapsulated using a T_ENCAP TLV. However, the CCNx Message TLV contains information such as the packet Name, which is used for routing, it is necessary to create encapsulation information to transport this (now encrypted) message.  This encapsulation information differs for Interests and Content Objects.</p>
+<p id="rfc.section.3.p.2">The resulting CCNx Message packet will have a structure similar to the following:</p>
+<pre>
+PACKET := FixedHeader [PerHopHeaders] OuterMessage [Validation]
+OuterMessage := EncapsulationName *OuterMetadata InnerMessage
+OuterMetadata := ExpiryTime / RecommendedCacheTime / EndChunkNumber
+InnerMessage := The encrypted message that is encapsulated in a
+                T_ENCAP TLV
+Validation := &lt;described in the following sections&gt;
+</pre>
+<h1 id="rfc.section.3.1"><a href="#rfc.section.3.1">3.1.</a> <a href="#interest-encapsulation" id="interest-encapsulation">Interest Encapsulation</a></h1>
+<p id="rfc.section.3.1.p.1">To encrypt an Interest using encapsulation, the outer TLV needs to contain an Encapsulation Name. The Encapsulation Name must contain at least the following information:</p>
+<p/>
+
+<ol>
+  <li>A routable prefix (/prefix/)</li>
+  <li>An identifier for the Encapsulation decryption key and decryption salt.  Specifically, this identifier is a tuple (K, Salt), where K is the decryption key KeyId and Salt is the input to the decryption algorithm.</li>
+  <li>The Nonce used to initialize the decryption algorithm. This is the same as the initialization vector (IV).</li>
+</ol>
+<p id="rfc.section.3.1.p.3">Collectively, the Encapsulation Name conveys the tuple (prefix, K, Salt, Nonce).  This information is put into the Encapsulation Name because it binds the decryption key, salt, and nonce to the encapsulated message. For every encrypted CCNx Message C there exists at exactly one tuple (K, Salt, Nonce) that can be used to decrypt C.</p>
+<p id="rfc.section.3.1.p.4">The following algorithm is used to encapsulate an Interest using this approach.</p>
+<pre>
+Input: A plaintext CCNx Message TLV for an Interest I, and tuple
+       (prefix, K, Salt, Nonce).
+Output: An Interest I' with the encrypted I inside.
+
+1. Create the Encapsulation Name EN as: /prefix/K/salt/Nonce.
+2. Create a new Interest I' with the name EN, followed immediately by
+   the TLV I contained inside a T_ENCAP TLV.
+3. Create and append to I' a ValidationAlgorithm algorithm with the
+   T_VALIDATION_ALG type that specifies Interest encapsulation
+   (**VALUE TBD**).
+4. Encrypt all of I' using AES-GCM. The plaintext for this encryption
+   procedure is only the V of the T_ENCAP TLV; The rest of message is
+   the AAD. Let (C, T) be the output of this encryption process. Replace
+   the V of the T_ENCAP TLV with C.
+5. Create and append to I' a ValidationPayload that contains T.
+6. Return I'.
+</pre>
+<h1 id="rfc.section.3.2"><a href="#rfc.section.3.2">3.2.</a> <a href="#content-object-wrapping" id="content-object-wrapping">Content Object Wrapping</a></h1>
+<p id="rfc.section.3.2.p.1">Similar to Interests, an encapsulated Content Object needs an Encapsulation Name.  However, unlike Interests, the actual decryption key identifier, salt, and nonce are not contained in this Encapsulation Name. This is because the encryption KeyId, Salt, and Nonce may be different than what was used for the corresponding Interest (if it was also encrypted). Also, the outer TLV of an encapsulated Content Object may also include additional cache or control directives that exist outside of the T_ENCAP wrapper.</p>
+<p id="rfc.section.3.2.p.2">The following algorithm is used to encapsulate a Content Object using this approach.</p>
+<pre>
+Input: An Interest I with name N, A plaintext CCNx Message TLV for a
+       Content Object CO, and decryption information tuple
+       (K, Salt, Nonce).
+Output: A Content Object CO' with the encrypted CO inside.
+
+1. Create the Encapsulation Name EN such that it matches N (the
+   Interest Name).
+2. Create a new Content Object CO' with the name EN, followed
+   immediately by the TLV CO contained inside a T_ENCAP TLV.
+3. Create and append to CO' a ValidationAlgorithm algorithm with the
+   T_VALIDATION_ALG type that specifies Content Object encapsulation
+   (**VALUE TBD**), and a T_KEY_ID value that contains (K, Nonce, Salt).
+4. Encrypt all of CO' using AES-GCM. The plaintext for this encryption
+   procedure is only the V of the T_ENCAP TLV; The rest of message is
+   the AAD. Let (C, T) be the output of this encryption process. Replace
+   the V of the T_ENCAP TLV with C.
+5. Create and append to CO' a ValidationPayload that contains T.
+6. Return CO'.
+</pre>
+<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
+<p id="rfc.section.4.p.1">TODO.</p>
+<h1 id="rfc.references"><a href="#rfc.references">5.</a> References</h1>
+<h1 id="rfc.references.1"><a href="#rfc.references.1">5.1.</a> Normative References</h1>
+<table>
+  <tbody>
+    <tr><td class="reference"><b id="CCNxKE">[CCNxKE]</b></td><td class="top"><a href="TODO">TODO</a>", n.d..</td>, "</tr>
+    <tr><td class="reference"><b id="MESSAGES">[MESSAGES]</b></td><td class="top"><a href="TODO">TODO</a>", n.d..</td>, "</tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC2119">[RFC2119]</b>
+      </td>
+      <td class="top"><a>Bradner, S.</a>, <a href="http://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>", BCP 14, RFC 2119, DOI 10.17487/RFC2119, March 1997.</td>
+    </tr>
+  </tbody>
+</table>
+<h1 id="rfc.references.2"><a href="#rfc.references.2">5.2.</a> Informative References</h1>
+<table>
+  <tbody>
+    <tr>
+      <td class="reference">
+        <b id="RFC5389">[RFC5389]</b>
+      </td>
+      <td class="top"><a>Rosenberg, J.</a>, <a>Mahy, R.</a>, <a>Matthews, P.</a> and <a>D. Wing</a>, "<a href="http://tools.ietf.org/html/rfc5389">Session Traversal Utilities for NAT (STUN)</a>", RFC 5389, DOI 10.17487/RFC5389, October 2008.</td>
+    </tr>
+  </tbody>
+</table>
+<h1 id="rfc.appendix.A"><a href="#rfc.appendix.A">Appendix A.</a> <a href="#test-vectors" id="test-vectors">Test Vectors</a></h1>
+<h1 id="rfc.appendix.A.1"><a href="#rfc.appendix.A.1">A.1.</a> <a href="#sample-encryption-tlvs" id="sample-encryption-tlvs">Sample Encryption TLVs</a></h1>
+<p id="rfc.section.A.1.p.1">TODO</p>
+<h1 id="rfc.appendix.A.2"><a href="#rfc.appendix.A.2">A.2.</a> <a href="#interest-encapsulation-examples" id="interest-encapsulation-examples">Interest Encapsulation Examples</a></h1>
+<p id="rfc.section.A.2.p.1">TODO</p>
+<h1 id="rfc.appendix.A.3"><a href="#rfc.appendix.A.3">A.3.</a> <a href="#content-object-encapsulation-examples" id="content-object-encapsulation-examples">Content Object Encapsulation Examples</a></h1>
+<p id="rfc.section.A.3.p.1">TODO</p>
+<h1 id="rfc.authors">
+  <a href="#rfc.authors">Author's Address</a>
+</h1>
+<div class="avoidbreak">
+  <address class="vcard">
+	<span class="vcardline">
+	  <span class="fn">Christopher A. Wood</span> 
+	  <span class="n hidden">
+		<span class="family-name">Wood</span>
+	  </span>
+	</span>
+	<span class="org vcardline">PARC, Inc.</span>
+	<span class="adr">
+	  
+	  <span class="vcardline">
+		<span class="locality"></span> 
+		<span class="region"></span>
+		<span class="code"></span>
+	  </span>
+	  <span class="country-name vcardline"></span>
+	</span>
+	<span class="vcardline">EMail: <a href="mailto:christopher.wood@parc.com">christopher.wood@parc.com</a></span>
+
+  </address>
+</div>
+
+</body>
+</html>
