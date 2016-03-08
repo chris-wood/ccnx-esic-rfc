@@ -2,7 +2,7 @@
 title: CCNx Packet Encapsulation
 abbrev: CCNx-PacketEncapsulation
 docname: draft-wood-icnrg-packetencap
-date: 2015-11-14
+date: 2015-3-6
 category: info
 
 ipr: trust200902
@@ -14,6 +14,11 @@ stand_alone: yes
 pi: [toc, sortrefs, symrefs]
 
 author:
+ -
+    ins: M. Mosko
+    name: Marc Mosko
+    org: PARC, Inc.
+    email: marc.mosko@parc.com
  -
     ins: C. A. Wood
     name: Christopher A. Wood
@@ -133,24 +138,23 @@ information:
 1. A routable prefix (/prefix/)
 2. An identifier for the Encapsulation decryption key and decryption salt.
 Specifically, this identifier is a tuple (K, Salt), where K is the decryption key
-KeyId and Salt is the input to the decryption algorithm.
-3. The Nonce used to initialize the decryption algorithm. This is the same as
-the initialization vector (IV).
+*KeyId* and *Salt* is the input to the decryption algorithm. The salt is treated
+as the IV for the encryption algorithm.
 
-Collectively, the Encapsulation Name conveys the tuple (prefix, K, Salt, Nonce).
-This information is put into the Encapsulation Name because it binds the
-decryption key, salt, and nonce to the encapsulated message. For every encrypted
-CCNx Message C there exists at exactly one tuple (K, Salt, Nonce) that can be used
+Collectively, the Encapsulation Name conveys the tuple (prefix, K, Salt).
+This information is put in the Encapsulation Name because it binds the
+decryption key and salt to the encapsulated message. For every encrypted
+CCNx Message C there exists at exactly one tuple (K, Salt) that can be used
 to decrypt C.
 
 The following algorithm is used to encapsulate an Interest using this approach.
 
 ~~~
 Input: A plaintext CCNx Message TLV for an Interest I, and tuple
-       (prefix, K, Salt, Nonce).
+       (prefix, K, Salt).
 Output: An Interest I' with the encrypted I inside.
 
-1. Create the Encapsulation Name EN as: /prefix/K/salt/Nonce.
+1. Create the Encapsulation Name EN as: /prefix/K/Salt.
 2. Create a new Interest I' with the name EN, followed immediately by
    the TLV I contained inside a T_ENCAP TLV.
 3. Create and append to I' a ValidationAlgorithm algorithm with the
@@ -190,7 +194,7 @@ The following algorithm is used to encapsulate a Content Object using this appro
 ~~~
 Input: An Interest I with name N, A plaintext CCNx Message TLV for a
        Content Object CO, and decryption information tuple
-       (K, Salt, Nonce).
+       (K, Salt).
 Output: A Content Object CO' with the encrypted CO inside.
 
 1. Create the Encapsulation Name EN such that it matches N (the

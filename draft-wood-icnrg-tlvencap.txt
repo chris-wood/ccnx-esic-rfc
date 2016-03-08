@@ -2,10 +2,10 @@
 
 
 
-ICNRG Working Group                                              C. Wood
-Internet-Draft                                                PARC, Inc.
-Intended status: Informational                         November 14, 2015
-Expires: May 17, 2016
+ICNRG Working Group                                             M. Mosko
+Internet-Draft                                                   C. Wood
+Intended status: Informational                                PARC, Inc.
+Expires: September 7, 2015                                March 06, 2015
 
 
                        CCNx Packet Encapsulation
@@ -36,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 17, 2016.
+   This Internet-Draft will expire on September 7, 2015.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Wood                      Expires May 17, 2016                  [Page 1]
+Mosko & Wood            Expires September 7, 2015               [Page 1]
 
-Internet-Draft          CCNx-PacketEncapsulation           November 2015
+Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
 
    the Trust Legal Provisions and are provided without warranty as
@@ -69,15 +69,15 @@ Table of Contents
    3.  CCNx Message Encapsulation  . . . . . . . . . . . . . . . . .   3
      3.1.  Interest Encapsulation  . . . . . . . . . . . . . . . . .   4
      3.2.  Content Object Wrapping . . . . . . . . . . . . . . . . .   5
-   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
-   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   6
+   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   5
+   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   5
      5.2.  Informative References  . . . . . . . . . . . . . . . . .   6
-   Appendix A.  Test Vectors . . . . . . . . . . . . . . . . . . . .   7
-     A.1.  Sample Encryption TLVs  . . . . . . . . . . . . . . . . .   7
-     A.2.  Interest Encapsulation Examples . . . . . . . . . . . . .   7
-     A.3.  Content Object Encapsulation Examples . . . . . . . . . .   7
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
+   Appendix A.  Test Vectors . . . . . . . . . . . . . . . . . . . .   6
+     A.1.  Sample Encryption TLVs  . . . . . . . . . . . . . . . . .   6
+     A.2.  Interest Encapsulation Examples . . . . . . . . . . . . .   6
+     A.3.  Content Object Encapsulation Examples . . . . . . . . . .   6
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   6
 
 1.  Introduction
 
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Wood                      Expires May 17, 2016                  [Page 2]
+Mosko & Wood            Expires September 7, 2015               [Page 2]
 
-Internet-Draft          CCNx-PacketEncapsulation           November 2015
+Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
 
 1.1.  Conventions and Terminology
@@ -165,9 +165,9 @@ Internet-Draft          CCNx-PacketEncapsulation           November 2015
 
 
 
-Wood                      Expires May 17, 2016                  [Page 3]
+Mosko & Wood            Expires September 7, 2015               [Page 3]
 
-Internet-Draft          CCNx-PacketEncapsulation           November 2015
+Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
 
    PACKET := FixedHeader [PerHopHeaders] OuterMessage [Validation]
@@ -187,50 +187,24 @@ Internet-Draft          CCNx-PacketEncapsulation           November 2015
 
    2.  An identifier for the Encapsulation decryption key and decryption
        salt.  Specifically, this identifier is a tuple (K, Salt), where
-       K is the decryption key KeyId and Salt is the input to the
-       decryption algorithm.
-
-   3.  The Nonce used to initialize the decryption algorithm.  This is
-       the same as the initialization vector (IV).
+       K is the decryption key _KeyId_ and _Salt_ is the input to the
+       decryption algorithm.  The salt is treated as the IV for the
+       encryption algorithm.
 
    Collectively, the Encapsulation Name conveys the tuple (prefix, K,
-   Salt, Nonce).  This information is put into the Encapsulation Name
-   because it binds the decryption key, salt, and nonce to the
-   encapsulated message.  For every encrypted CCNx Message C there
-   exists at exactly one tuple (K, Salt, Nonce) that can be used to
-   decrypt C.
+   Salt).  This information is put in the Encapsulation Name because it
+   binds the decryption key and salt to the encapsulated message.  For
+   every encrypted CCNx Message C there exists at exactly one tuple (K,
+   Salt) that can be used to decrypt C.
 
    The following algorithm is used to encapsulate an Interest using this
    approach.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Wood                      Expires May 17, 2016                  [Page 4]
-
-Internet-Draft          CCNx-PacketEncapsulation           November 2015
-
-
 Input: A plaintext CCNx Message TLV for an Interest I, and tuple
-       (prefix, K, Salt, Nonce).
+       (prefix, K, Salt).
 Output: An Interest I' with the encrypted I inside.
 
-1. Create the Encapsulation Name EN as: /prefix/K/salt/Nonce.
+1. Create the Encapsulation Name EN as: /prefix/K/Salt.
 2. Create a new Interest I' with the name EN, followed immediately by
    the TLV I contained inside a T_ENCAP TLV.
 3. Create and append to I' a ValidationAlgorithm algorithm with the
@@ -242,6 +216,15 @@ Output: An Interest I' with the encrypted I inside.
    the V of the T_ENCAP TLV with C.
 5. Create and append to I' a ValidationPayload that contains T.
 6. Return I'.
+
+
+
+
+
+Mosko & Wood            Expires September 7, 2015               [Page 4]
+
+Internet-Draft          CCNx-PacketEncapsulation              March 2015
+
 
 3.2.  Content Object Wrapping
 
@@ -257,34 +240,9 @@ Output: An Interest I' with the encrypted I inside.
    The following algorithm is used to encapsulate a Content Object using
    this approach.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Wood                      Expires May 17, 2016                  [Page 5]
-
-Internet-Draft          CCNx-PacketEncapsulation           November 2015
-
-
 Input: An Interest I with name N, A plaintext CCNx Message TLV for a
        Content Object CO, and decryption information tuple
-       (K, Salt, Nonce).
+       (K, Salt).
 Output: A Content Object CO' with the encrypted CO inside.
 
 1. Create the Encapsulation Name EN such that it matches N (the
@@ -314,6 +272,16 @@ Output: A Content Object CO' with the encrypted CO inside.
    [MESSAGES]
               "TODO", n.d., <TODO>.
 
+
+
+
+
+
+Mosko & Wood            Expires September 7, 2015               [Page 5]
+
+Internet-Draft          CCNx-PacketEncapsulation              March 2015
+
+
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
@@ -325,18 +293,6 @@ Output: A Content Object CO' with the encrypted CO inside.
               "Session Traversal Utilities for NAT (STUN)", RFC 5389,
               DOI 10.17487/RFC5389, October 2008,
               <http://www.rfc-editor.org/info/rfc5389>.
-
-
-
-
-
-
-
-
-Wood                      Expires May 17, 2016                  [Page 6]
-
-Internet-Draft          CCNx-PacketEncapsulation           November 2015
-
 
 Appendix A.  Test Vectors
 
@@ -352,7 +308,13 @@ A.3.  Content Object Encapsulation Examples
 
    TODO
 
-Author's Address
+Authors' Addresses
+
+   Marc Mosko
+   PARC, Inc.
+
+   Email: marc.mosko@parc.com
+
 
    Christopher A. Wood
    PARC, Inc.
@@ -371,22 +333,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Wood                      Expires May 17, 2016                  [Page 7]
+Mosko & Wood            Expires September 7, 2015               [Page 6]
