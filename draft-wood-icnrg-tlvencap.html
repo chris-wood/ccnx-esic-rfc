@@ -5,7 +5,7 @@
 <head profile="http://www.w3.org/2006/03/hcard http://dublincore.org/documents/2008/08/04/dc-html/">
   <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
 
-  <title>CCNx Packet Encapsulation</title>
+  <title>Encrypted Sessions In CCNx (ESIC)</title>
 
   <style type="text/css" title="Xml2Rfc (sans serif)">
   /*<![CDATA[*/
@@ -376,10 +376,14 @@
   <link href="#rfc.toc" rel="Contents"/>
 <link href="#rfc.section.1" rel="Chapter" title="1 Introduction"/>
 <link href="#rfc.section.1.1" rel="Chapter" title="1.1 Conventions and Terminology"/>
-<link href="#rfc.section.2" rel="Chapter" title="2 Encrypted Types"/>
-<link href="#rfc.section.3" rel="Chapter" title="3 CCNx Message Encapsulation"/>
-<link href="#rfc.section.3.1" rel="Chapter" title="3.1 Interest Encapsulation"/>
-<link href="#rfc.section.3.2" rel="Chapter" title="3.2 Content Object Wrapping"/>
+<link href="#rfc.section.2" rel="Chapter" title="2 Stateless packet keys"/>
+<link href="#rfc.section.3" rel="Chapter" title="3 Inner and Outer Contexts"/>
+<link href="#rfc.section.3.1" rel="Chapter" title="3.1 Outer Context Names"/>
+<link href="#rfc.section.3.2" rel="Chapter" title="3.2 Outer Packet"/>
+<link href="#rfc.section.3.2.1" rel="Chapter" title="3.2.1 Consumer Outer Packet"/>
+<link href="#rfc.section.3.2.2" rel="Chapter" title="3.2.2 Producer Outer Packet"/>
+<link href="#rfc.section.3.3" rel="Chapter" title="3.3 Processing Chain"/>
+<link href="#rfc.section.3.4" rel="Chapter" title="3.4 Transport State Machine"/>
 <link href="#rfc.section.4" rel="Chapter" title="4 Security Considerations"/>
 <link href="#rfc.references" rel="Chapter" title="5 References"/>
 <link href="#rfc.references.1" rel="Chapter" title="5.1 Normative References"/>
@@ -397,8 +401,8 @@
   <meta name="dct.creator" content="Mosko, M. and C. Wood" />
   <meta name="dct.identifier" content="urn:ietf:id:draft-wood-icnrg-packetencap" />
   <meta name="dct.issued" scheme="ISO8601" content="2015-3-06" />
-  <meta name="dct.abstract" content="This document describes a mechanism to encrypt CCNx TLVs using encapsulation.  CCNx TLVs (e.g., message payloads) are created and then encrypted and wrapped in a new type of TLV for encapsulation. These wrapper TLVs are given the new type T_ENCAP. This encapsulation mechanism is used to encrypt CCNx messages i(i.e., Interests and Content Objects) for transport between consumers and producers." />
-  <meta name="description" content="This document describes a mechanism to encrypt CCNx TLVs using encapsulation.  CCNx TLVs (e.g., message payloads) are created and then encrypted and wrapped in a new type of TLV for encapsulation. These wrapper TLVs are given the new type T_ENCAP. This encapsulation mechanism is used to encrypt CCNx messages i(i.e., Interests and Content Objects) for transport between consumers and producers." />
+  <meta name="dct.abstract" content="This document describes how to transport CCNx packets inside an encrypted session between peers that share traffic secrets, such as derived from CCNxKE.  The peers create an outer naming context to identify the encryption session in one direction between the consumer and the producer.  The consumer sends encrypted Interest messages to the producer, who responds with encrypted Content Objects.  Inside the outer context, the consumer sends Interests with different names, which the producer may respond to or may send InterestReturns for.  There does not need to be a naming relationship between the outer names and the inner names.  The inner content is still protected by normal CCNx authentication mechanisms and possiby encrypted under other schemes." />
+  <meta name="description" content="This document describes how to transport CCNx packets inside an encrypted session between peers that share traffic secrets, such as derived from CCNxKE.  The peers create an outer naming context to identify the encryption session in one direction between the consumer and the producer.  The consumer sends encrypted Interest messages to the producer, who responds with encrypted Content Objects.  Inside the outer context, the consumer sends Interests with different names, which the producer may respond to or may send InterestReturns for.  There does not need to be a naming relationship between the outer names and the inner names.  The inner content is still protected by normal CCNx authentication mechanisms and possiby encrypted under other schemes." />
 
 </head>
 
@@ -428,13 +432,13 @@
     </tbody>
   </table>
 
-  <p class="title">CCNx Packet Encapsulation<br />
+  <p class="title">Encrypted Sessions In CCNx (ESIC)<br />
   <span class="filename">draft-wood-icnrg-packetencap</span></p>
   
   <h1 id="rfc.abstract">
   <a href="#rfc.abstract">Abstract</a>
 </h1>
-<p>This document describes a mechanism to encrypt CCNx TLVs using encapsulation.  CCNx TLVs (e.g., message payloads) are created and then encrypted and wrapped in a new type of TLV for encapsulation. These wrapper TLVs are given the new type T_ENCAP. This encapsulation mechanism is used to encrypt CCNx messages i(i.e., Interests and Content Objects) for transport between consumers and producers.</p>
+<p>This document describes how to transport CCNx packets inside an encrypted session between peers that share traffic secrets, such as derived from CCNxKE.  The peers create an outer naming context to identify the encryption session in one direction between the consumer and the producer.  The consumer sends encrypted Interest messages to the producer, who responds with encrypted Content Objects.  Inside the outer context, the consumer sends Interests with different names, which the producer may respond to or may send InterestReturns for.  There does not need to be a naming relationship between the outer names and the inner names.  The inner content is still protected by normal CCNx authentication mechanisms and possiby encrypted under other schemes.</p>
 <h1 id="rfc.status">
   <a href="#rfc.status">Status of This Memo</a>
 </h1>
@@ -455,10 +459,14 @@
 
   	<li>1.   <a href="#rfc.section.1">Introduction</a></li>
 <ul><li>1.1.   <a href="#rfc.section.1.1">Conventions and Terminology</a></li>
-</ul><li>2.   <a href="#rfc.section.2">Encrypted Types</a></li>
-<li>3.   <a href="#rfc.section.3">CCNx Message Encapsulation</a></li>
-<ul><li>3.1.   <a href="#rfc.section.3.1">Interest Encapsulation</a></li>
-<li>3.2.   <a href="#rfc.section.3.2">Content Object Wrapping</a></li>
+</ul><li>2.   <a href="#rfc.section.2">Stateless packet keys</a></li>
+<li>3.   <a href="#rfc.section.3">Inner and Outer Contexts</a></li>
+<ul><li>3.1.   <a href="#rfc.section.3.1">Outer Context Names</a></li>
+<li>3.2.   <a href="#rfc.section.3.2">Outer Packet</a></li>
+<ul><li>3.2.1.   <a href="#rfc.section.3.2.1">Consumer Outer Packet</a></li>
+<li>3.2.2.   <a href="#rfc.section.3.2.2">Producer Outer Packet</a></li>
+</ul><li>3.3.   <a href="#rfc.section.3.3">Processing Chain</a></li>
+<li>3.4.   <a href="#rfc.section.3.4">Transport State Machine</a></li>
 </ul><li>4.   <a href="#rfc.section.4">Security Considerations</a></li>
 <li>5.   <a href="#rfc.references">References</a></li>
 <ul><li>5.1.   <a href="#rfc.references.1">Normative References</a></li>
@@ -473,94 +481,97 @@
   </ul>
 
   <h1 id="rfc.section.1"><a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a></h1>
-<p id="rfc.section.1.p.1">CCNx messages are designed around authentication, not confidentiality. The standard CCNx message format includes a fixed header, optional header TLVs, message body TLV, and optional validation section <a href="#MESSAGES">[MESSAGES]</a>. In many applications, the body of a Content Object (or Interest), i.e., the Payload TLV, are said to be encrypted for end-to-end confidentiality between a producer and consumer.  However, there does not exist a standard way by which such TLVs are encrypted.</p>
-<p id="rfc.section.1.p.2">This document specifies a CCNx TLV encapsulation mechanism which can be used to encrypt any CCNx TLV using standard symmetric-key encryption. Encrypted TLVs, called TEs (encrypted types), are wrapped in encapsulation TLVs of the type T_ENCAP. These wrapper TLVs are then inserted into other TLVs for transport. This encapsulation TLV will be used to an encrypt entire CCNx messages (i.e., Interests or Content Objects) for transport between a consumer and producer. In this case, the &#8220;outer&#8221; message TLV, i.e., the CCNx message TLV which contains the T_ENCAP internally, is given its own routable CCNx Name and optional Validation information. The details of which will be specified later in this document.</p>
-<p id="rfc.section.1.p.3">The mechanism by which this symmetric key is obtained is outside the scope of this document; These keys could be pre-shared or derived from an online key-exchange protocol <a href="#CCNxKE">[CCNxKE]</a>.</p>
+<p id="rfc.section.1.p.1">CCNx packets <a href="#MESSAGES">[MESSAGES]</a> contain a fixed header, optional hop-by-hop headers, a CCNx Message, and a validation section.  Encrypted Sessions in CCNx (ESIC) describes how to to transport encrypted CCNx packets inside other CCNx packets.  The outer packet (the wrapper) uses a CCNx name that identifies the encrypted session while the inner (encrypted) portion remains hidden and private to an outside observer.</p>
+<p id="rfc.section.1.p.2">ESIC defines a new field Encapsulated (T_ENCAP) that may occur in both an Interest (T_INTEREST) and Content Object (T_OBJECT).  The T_ENCAP field contains the encryption of the inner CCNx Packet.</p>
+<p id="rfc.section.1.p.3">Because the use of an outer CCNxPacket, the total packet length of the inner CCNxPacket may need to be limited to less than the maximum of 64 KB.  ESIC allows the use of a compressor before the encryptor, so it is likely that a packet that would overflow the 64 KB limit could be compressed by enough to allow for an outer CCNxPacket.  This consideration for the PacketLength is separate from concerns about path MTU.</p>
+<p id="rfc.section.1.p.4">It is a requirement of ESIC that one inner packet fit in one outer packet.  This is because ESIC does not define a method to issue extra outer interests to fetch extra outer content objects.  It relies entirely on Interests generated by the consumer application.</p>
+<p id="rfc.section.1.p.5">ESIC defines how to use a traffic secret (TS), such as derived from CCNxKE, to encrypt multiple packets in a consumer-producer session.  Each direction will use separate derived keys.  If one wishes to have a reverse traffic flow (interests from producer fetching content objects from the consumer), then one must share a second TS and use it with the roles reversed, but otherwise it works exactly as in the first case.</p>
+<p id="rfc.section.1.p.6">The mechanism by which this symmetric key is obtained is outside the scope of this document; These keys could be pre-shared or derived from an online key-exchange protocol <a href="#CCNxKE">[CCNxKE]</a>.</p>
 <h1 id="rfc.section.1.1"><a href="#rfc.section.1.1">1.1.</a> <a href="#conventions-and-terminology" id="conventions-and-terminology">Conventions and Terminology</a></h1>
 <p id="rfc.section.1.1.p.1">The key words &#8220;MUST&#8221;, &#8220;MUST NOT&#8221;, &#8220;REQUIRED&#8221;, &#8220;SHALL&#8221;, &#8220;SHALL NOT&#8221;, &#8220;SHOULD&#8221;, &#8220;SHOULD NOT&#8221;, &#8220;RECOMMENDED&#8221;, &#8220;NOT RECOMMENDED&#8221;, &#8220;MAY&#8221;, and &#8220;OPTIONAL&#8221; in this document are to be interpreted as described in RFC 2119 <a href="#RFC2119">[RFC2119]</a>.</p>
 <p id="rfc.section.1.1.p.2">The following terms are used:</p>
 <p/>
 
 <ul>
-  <li>Inner TLV: The CCNx message that is encrypted an contained inside a T_ENCAP TLV.</li>
-  <li>Outer TLV: The TLV which contains, internally, a T_ENCAP TLV.</li>
-  <li>Encapsulation Name: A CCNx Name which can be used to route an encapsulated CCNx Message and perform decryption.</li>
+  <li>Inner Packet: A fully-formed CCNx packet (fixed header through validation) that is carried encrypted inside a T_ENCAP TLV.</li>
+  <li>Outer Packet: A fully-formd CCNx packet that carries the outer context of an encrypted session.</li>
+  <li>Outer Name: The name of the outer packet.</li>
+  <li>Inner Name: The name of the inner packet (not visible in transport).</li>
 </ul>
-<h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#encrypted-types" id="encrypted-types">Encrypted Types</a></h1>
-<p id="rfc.section.2.p.1">Encryption of a TLV is done by encapsulation. A new T_ENCAP TLV is created and used as a security envelope for the plaintext TLV(s). Specifically, the ciphertext that results from encrypting one or more TLVs is inserted as the value (V) of the T_ENCAP TLV. This procedure is shown pictorially below.</p>
+<h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#stateless-packet-keys" id="stateless-packet-keys">Stateless packet keys</a></h1>
+<p id="rfc.section.2.p.1">ESIC assumes that the consumer and producer share a Traffic Secret (TS), usually derived as per CCNxKE.  Regardless of  how the TS is derived (TODO: it needs to meet some so-far unstated requirements), there are four secrets derived from the TS, as per CCNxKE Section 9.5.  This specifies how to generate the Client Write Key, Server Write Key, Client Write IV, and Server Write IV.</p>
+<p id="rfc.section.2.p.2">As per <a href="#RFC5288">[RFC5288]</a> for the use of AES-GCM, the GCM Nonce is composed of a Salt and a Nonce_Explicit.  The Salt comes from the Client/Server Write IV and the Nonce_Explicit comes from the Outer Name chunk number padded to an 8-byte sequence number.  This defines the packet key used for a specific chunk, and is unique in the consumer to producer and producer to consumer directions.</p>
+<p id="rfc.section.2.p.3">TODO: Should we allow CCNxKE to specify the starting chunk number so it does not always start at 0?  It would need to be encoded in the MoveToken.</p>
+<h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#inner-and-outer-contexts" id="inner-and-outer-contexts">Inner and Outer Contexts</a></h1>
+<p id="rfc.section.3.p.1">The inner context is a CCNx packet with meaning to the consumer and producer.  They may be clear text or they make use additional encryption, such as group keying, broadcast encryption, homomorphic encryption, or something else.  The consumer sends an Interest packet with an Inner Name (plus other optional fields as normal) and expectes to get back a Content Object or InterestReturn packet with corresponding name and fields.</p>
+<p id="rfc.section.3.p.2">The outer context names the encryption session and sequences packets.  ESIC expects that there is a one-to-one relationship between the inner context and outer context. For an Interest with Inner Name N inside outer context with Outer Name N&#8217;, the CCNx Packet inside the reply with outer name N&#8217; must be a ContentObject or InterestReturn corresponding to name N.</p>
+<h1 id="rfc.section.3.1"><a href="#rfc.section.3.1">3.1.</a> <a href="#outer-context-names" id="outer-context-names">Outer Context Names</a></h1>
+<p id="rfc.section.3.1.p.1">The outer context name is a routable prefix PREFIX followed by a session ID (SID) followed by a ChunkNumber (Chunk).  The chunk number is a monotonically increasing number.  The outer name is clear text, visible to all observers.</p>
+<p id="rfc.section.3.1.p.2">The PREFIX and SID are derived outside of ESIC.  In normal use with CCNxKE, the PREFIX is either the same prefix as used in the key exchagne or it is derived from within CCNxKE from Prefix2 or the MoveToken.  The SID is created by the producer and given to the consumer inside CCNxKE.</p>
 <pre>
-+------------------+
-| T1 | L1 |   V1   |
-+------------------+
-         ||
-         \/
-+----------------------------+
-| T2 | L2 |  Enc((T1,L1,V1)) |
-+----------------------------+
+OuterName := '/' PREFIX '/' SID=sid '/' CHUNK=chunk
 </pre>
-<p id="rfc.section.2.p.2">In this figure, T1 can be any TLV and T2 is T_ENCAP.</p>
-<h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#ccnx-message-encapsulation" id="ccnx-message-encapsulation">CCNx Message Encapsulation</a></h1>
-<p id="rfc.section.3.p.1">To encapsulate an Interest or Content Object, the corresponding CCNx Message TLV is encapsulated using a T_ENCAP TLV. However, the CCNx Message TLV contains information such as the packet Name, which is used for routing, it is necessary to create encapsulation information to transport this (now encrypted) message.  This encapsulation information differs for Interests and Content Objects.</p>
-<p id="rfc.section.3.p.2">The resulting CCNx Message packet will have a structure similar to the following:</p>
+<h1 id="rfc.section.3.2"><a href="#rfc.section.3.2">3.2.</a> <a href="#outer-packet" id="outer-packet">Outer Packet</a></h1>
+<p id="rfc.section.3.2.p.1">The outer packet will have a Fixed Header, per hop headers, a CCNx Message with the Outer Name, and a Validation section (ValidationAlg and ValidationPayload).  The outer packet is visible to 3rd parties in its entirety.  Only the &#8216;value&#8217; of T_ENCAP TLV field inside the CCNx Message is encrypted.  The T_ENCAP TLV Value is the AEAD &#8216;plaintext&#8217; that will be converted to the &#8216;ciphertext&#8217;.  In the outer packet, only the CCNx Message and the ValidationAlg are covered by the authentication token</p>
+<p id="rfc.section.3.2.p.2">The Outer Packet has a Validation section.  The ValidationAlg will have a 0-length ValidationType of T_SESSION, which indidates that the encryption context must be derived from the SID in the name.</p>
+<p id="rfc.section.3.2.p.3">The Associated Data (in AEAD) covered by the validation output is from the beignning of the CCNx Message up to but not including the T_ENCAP Value concatendated with the ValidationAlg TLV.  That is, it skips the T_ENCAP TLV Value.</p>
+<p id="rfc.section.3.2.p.4">The ValidationPayload contains the AEAD authentication token.</p>
+<p id="rfc.section.3.2.p.5">If the Producer cannot satisfy an Inner Packet Interest, it will encapsualte an InterestReturn inside an OuterPacket of PacketType ContentObject.  That is, the InterestReturn is end-to-end signaling about the inner context.</p>
+<p id="rfc.section.3.2.p.6">If the Producer has an error with the Outer Context, it may return an InterestReturn for the outer context as normal for Interest processing.</p>
+<h1 id="rfc.section.3.2.1"><a href="#rfc.section.3.2.1">3.2.1.</a> <a href="#consumer-outer-packet" id="consumer-outer-packet">Consumer Outer Packet</a></h1>
+<p id="rfc.section.3.2.1.p.1">The outer packet from the consumer to the producer will always be of PacketType Interest.  They may have any of the normal Interest per-hop headers (e.g. InterestLifetime), which will be visible to 3rd parties and not protected by the encryption or authentication.</p>
+<p id="rfc.section.3.2.1.p.2">The Outer Context has a T_INTEREST message type, which contains a T_NAME of the Outer Name.  It may have other additional metadata in clear text.  The T_INTEREST container is protected by the encryption authenticator.  Finally, the T_INTEREST has a T_ENCAP field that contains the encryption of the Inner Packet.  The encryption will use the algorithm negotiated as part of the SID (i.e. AES-GCM).</p>
+<h1 id="rfc.section.3.2.2"><a href="#rfc.section.3.2.2">3.2.2.</a> <a href="#producer-outer-packet" id="producer-outer-packet">Producer Outer Packet</a></h1>
+<p id="rfc.section.3.2.2.p.1">The producer will only send PacketType ContentObject back to the consumer.  The Inner packet may be either an InterestReturn or a ContentObject corresponding to the Inner Packet interest.</p>
+<p id="rfc.section.3.2.2.p.2">The outer packet may have per-hop headers (e.g. RecommendedCacheTime) that affect the encrypted packet.  These are independent from the inner Per Hop headers.  The outer MessageType is always T_OBJECT.  It may have normal metadata for a content object, such as ExpiryTime, which affect only the outer packet.  Finally, it has a T_ENCAP that contains the wrapped inner Packet.</p>
+<h1 id="rfc.section.3.3"><a href="#rfc.section.3.3">3.3.</a> <a href="#processing-chain" id="processing-chain">Processing Chain</a></h1>
+<p id="rfc.section.3.3.p.1">The processing chain from the Source to the Sink is shown below.  The compression/decompression stages are optional and are not strongly tied to the encrypted session.  If used, we assume the compression protocol is session specific to avoid state snooping (e.g. such as in CRIME attack).</p>
 <pre>
-PACKET := FixedHeader [PerHopHeaders] OuterMessage [Validation]
-OuterMessage := EncapsulationName *OuterMetadata InnerMessage
-OuterMetadata := ExpiryTime / RecommendedCacheTime / EndChunkNumber
-InnerMessage := The encrypted message that is encapsulated in a
-                T_ENCAP TLV
-Validation := &lt;described in the following sections&gt;
+() indicates output of stage
++------------+   +-------------+   +-----------------+   +---------+
+| Source     | - | Compresser  | - | Encypter/Framer | - | Channel |
+|(CCNxPacket)|   |(CCNxzPacket)|   | (CCNxPacket)    |   |         |
++------------+   +-------------+   +-----------------+   +---------+
+
++------------+   +--------------------+   +-------------+   +------+
+| Channel    | - | Deframer/Decrypter | - | Decompressor| - | Sink |
+|(CCNxPacket)|   | (CCNxzPacket)      |   | (CCNxPacket)|   |      |
++------------+   +--------------------+   +-------------+   +------+
 </pre>
-<h1 id="rfc.section.3.1"><a href="#rfc.section.3.1">3.1.</a> <a href="#interest-encapsulation" id="interest-encapsulation">Interest Encapsulation</a></h1>
-<p id="rfc.section.3.1.p.1">To encrypt an Interest using encapsulation, the outer TLV needs to contain an Encapsulation Name. The Encapsulation Name must contain at least the following information:</p>
 <p/>
 
-<ol>
-  <li>A routable prefix (/prefix/)</li>
-  <li>An identifier for the Encapsulation decryption key and decryption salt.  Specifically, this identifier is a tuple (K, Salt), where K is the decryption key <em>KeyId</em> and <em>Salt</em> is the input to the decryption algorithm. The salt is treated as the IV for the encryption algorithm.</li>
-</ol>
-<p id="rfc.section.3.1.p.3">Collectively, the Encapsulation Name conveys the tuple (prefix, K, Salt).  This information is put in the Encapsulation Name because it binds the decryption key and salt to the encapsulated message. For every encrypted CCNx Message C there exists at exactly one tuple (K, Salt) that can be used to decrypt C.</p>
-<p id="rfc.section.3.1.p.4">The following algorithm is used to encapsulate an Interest using this approach.</p>
-<pre>
-Input: A plaintext CCNx Message TLV for an Interest I, and tuple
-       (prefix, K, Salt).
-Output: An Interest I' with the encrypted I inside.
+<ul>
+  <li>Source: The source of an Inner Packet.</li>
+  <li>Compressor: Optional component to reduce the size before encryption.</li>
+  <li>Encrypter/Framer: Creates the ciphertext of the CCNx(z)packet to produce the T_ENCAP, constructs the outer packet, computes the authentication token and generates the ValidationPayload.</li>
+  <li>Channel: Carries the wireformat outer packet</li>
+  <li>Deframer/Decrypter: Verifies the authenticator, decrypts the T_ENCAP, and passes the Inner Packet to the Decompressor.</li>
+  <li>Decompressor: Optional component to expand the inner packet</li>
+  <li>Sink: The sink of an Inner Packet.</li>
+</ul>
+<p id="rfc.section.3.3.p.3">The Encrypter/Framer will generate outer names with sequential outer name chunk numbers.</p>
+<p id="rfc.section.3.3.p.4">The Deframer/Decryptor will extract the SID and chunk number from the outer name and use those to create the packet key (see below).  Using the packet key, it will verify the authentication token and if successful decrypt the T_ENCAP.  The output of the T_ENCAP will then be passed to the Sink.</p>
+<h1 id="rfc.section.3.4"><a href="#rfc.section.3.4">3.4.</a> <a href="#transport-state-machine" id="transport-state-machine">Transport State Machine</a></h1>
+<p id="rfc.section.3.4.p.1">TODO: this section needs a lot of review and implementation to make sure we&#8217;ve covered everything that&#8217;s needed.</p>
+<p id="rfc.section.3.4.p.2">ESIC uses a state machine to manage the ephemeral session such that the Producer knows when the Consumer is finished with the SID.  It also will try to re-request packets that fail authentication before sending its own InterestReturn up the Sink.</p>
+<p id="rfc.section.3.4.p.3">The protocol begins with each side knowing the four keys (see Stateless Packet Keys below), the Session ID (SID), and the routable prefix PREFIX.</p>
+<p id="rfc.section.3.4.p.4">The receiving process uses a replay buffer to prevent replay attacks.  The buffer tracks the last N out-of-order verified chunks plus the cumulative verified chunk number.  TODO: Sort this out how to avoid replay attacks without requiring reliable in-order delivery.</p>
+<p id="rfc.section.3.4.p.5">Protocol of Encrypter/Framer:</p>
+<p/>
 
-1. Create the Encapsulation Name EN as: /prefix/K/Salt.
-2. Create a new Interest I' with the name EN, followed immediately by
-   the TLV I contained inside a T_ENCAP TLV.
-3. Create and append to I' a ValidationAlgorithm algorithm with the
-   T_VALIDATION_ALG type that specifies Interest encapsulation
-   (**VALUE TBD**).
-4. Encrypt all of I' using AES-GCM. The plaintext for this encryption
-   procedure is only the V of the T_ENCAP TLV; The rest of message is
-   the AAD. Let (C, T) be the output of this encryption process. Replace
-   the V of the T_ENCAP TLV with C.
-5. Create and append to I' a ValidationPayload that contains T.
-6. Return I'.
-</pre>
-<h1 id="rfc.section.3.2"><a href="#rfc.section.3.2">3.2.</a> <a href="#content-object-wrapping" id="content-object-wrapping">Content Object Wrapping</a></h1>
-<p id="rfc.section.3.2.p.1">Similar to Interests, an encapsulated Content Object needs an Encapsulation Name.  However, unlike Interests, the actual decryption key identifier, salt, and nonce are not contained in this Encapsulation Name. This is because the encryption KeyId, Salt, and Nonce may be different than what was used for the corresponding Interest (if it was also encrypted). Also, the outer TLV of an encapsulated Content Object may also include additional cache or control directives that exist outside of the T_ENCAP wrapper.</p>
-<p id="rfc.section.3.2.p.2">The following algorithm is used to encapsulate a Content Object using this approach.</p>
-<pre>
-Input: An Interest I with name N, A plaintext CCNx Message TLV for a
-       Content Object CO, and decryption information tuple
-       (K, Salt).
-Output: A Content Object CO' with the encrypted CO inside.
+<ul>
+  <li>Initialize: set NextChunkNumber = 0, State = Waiting</li>
+  <li>Waiting: Wait for packet from Source (or compressor).  On packet receive, State = Send</li>
+  <li>Send: <ul><li>Generate packet key for NextChunkNumber</li><li>Create outer packet with name /PREFIX/SID=sid/CHUNK=NextChunkNumber and the input packet as cleartext in the T_ENCAP.</li><li>Run the AEAD scheme authenticating and encrypting.  Note the prior description of the split Associated Data before and after the plaintext.</li><li>Increment NextChunkNumber</li><li>Send the packet</li><li>State = Waiting</li></ul></li>
+</ul>
+<p id="rfc.section.3.4.p.7">Protocol of the Deframer/Decrypter:</p>
+<p/>
 
-1. Create the Encapsulation Name EN such that it matches N (the
-   Interest Name).
-2. Create a new Content Object CO' with the name EN, followed
-   immediately by the TLV CO contained inside a T_ENCAP TLV.
-3. Create and append to CO' a ValidationAlgorithm algorithm with the
-   T_VALIDATION_ALG type that specifies Content Object encapsulation
-   (**VALUE TBD**), and a T_KEY_ID value that contains (K, Nonce, Salt).
-4. Encrypt all of CO' using AES-GCM. The plaintext for this encryption
-   procedure is only the V of the T_ENCAP TLV; The rest of message is
-   the AAD. Let (C, T) be the output of this encryption process. Replace
-   the V of the T_ENCAP TLV with C.
-5. Create and append to CO' a ValidationPayload that contains T.
-6. Return CO'.
-</pre>
+<ul>
+  <li>Initialize the replay buffer to empty, State = Waiting.</li>
+  <li>Waiting: wait for packet, on input from channel State = Receive</li>
+  <li>Receive: <ul><li>Extract the SID and ChunkNumber from name</li><li>If replay, drop</li><li>Authenticate the packet <ul><li>If failed on consumer, send InterestReturn to Source with &#8220;X Error&#8221; (TBD)</li><li>If failed on producer, send failure message to Sink so it can send end-to-end InterestReturn back over channel (if desired) with &#8220;Y Error&#8221; (TBD)</li></ul></li><li>Add packet to replay buffer</li><li>Decrypt packet</li><li>Pass decrypted packet to Sink/Source (or decompressor)</li></ul></li>
+</ul>
 <h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
 <p id="rfc.section.4.p.1">TODO.</p>
 <h1 id="rfc.references"><a href="#rfc.references">5.</a> References</h1>
@@ -580,6 +591,12 @@ Output: A Content Object CO' with the encrypted CO inside.
 <h1 id="rfc.references.2"><a href="#rfc.references.2">5.2.</a> Informative References</h1>
 <table>
   <tbody>
+    <tr>
+      <td class="reference">
+        <b id="RFC5288">[RFC5288]</b>
+      </td>
+      <td class="top"><a>Salowey, J.</a>, <a>Choudhury, A.</a> and <a>D. McGrew</a>, "<a href="http://tools.ietf.org/html/rfc5288">AES Galois Counter Mode (GCM) Cipher Suites for TLS</a>", RFC 5288, DOI 10.17487/RFC5288, August 2008.</td>
+    </tr>
     <tr>
       <td class="reference">
         <b id="RFC5389">[RFC5389]</b>
