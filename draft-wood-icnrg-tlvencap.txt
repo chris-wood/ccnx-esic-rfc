@@ -81,15 +81,16 @@ Table of Contents
    4.  Control Channel . . . . . . . . . . . . . . . . . . . . . . .   9
      4.1.  ESIC Control Packets  . . . . . . . . . . . . . . . . . .   9
      4.2.  ESIC Control Messages . . . . . . . . . . . . . . . . . .  11
-   5.  Security Considerations . . . . . . . . . . . . . . . . . . .  11
-   6.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  11
-     6.1.  Normative References  . . . . . . . . . . . . . . . . . .  11
-     6.2.  Informative References  . . . . . . . . . . . . . . . . .  12
-   Appendix A.  Test Vectors . . . . . . . . . . . . . . . . . . . .  12
-     A.1.  Sample Encryption TLVs  . . . . . . . . . . . . . . . . .  12
-     A.2.  Interest Encapsulation Examples . . . . . . . . . . . . .  12
-     A.3.  Content Object Encapsulation Examples . . . . . . . . . .  12
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  12
+   5.  The ESIC API  . . . . . . . . . . . . . . . . . . . . . . . .  11
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  12
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  12
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . .  12
+     7.2.  Informative References  . . . . . . . . . . . . . . . . .  13
+   Appendix A.  Test Vectors . . . . . . . . . . . . . . . . . . . .  13
+     A.1.  Sample Encryption TLVs  . . . . . . . . . . . . . . . . .  13
+     A.2.  Interest Encapsulation Examples . . . . . . . . . . . . .  13
+     A.3.  Content Object Encapsulation Examples . . . . . . . . . .  13
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  14
 
 1.  Introduction
 
@@ -104,7 +105,6 @@ Table of Contents
    ESIC defines a new field Encapsulated (T_ENCAP) that may occur in
    both an Interest (T_INTEREST) and Content Object (T_OBJECT).  The
    T_ENCAP field contains the encryption of the inner CCNx Packet.
-
 
 
 
@@ -156,7 +156,7 @@ Internet-Draft          CCNx-PacketEncapsulation              March 2015
    o  Inner Packet: A fully-formed CCNx packet (fixed header through
       validation) that is carried encrypted inside a T_ENCAP TLV.
 
-   o  Outer Packet: A fully-formd CCNx packet that carries the outer
+   o  Outer Packet: A fully-formed CCNx packet that carries the outer
       context of an encrypted session.
 
    o  Outer Name: The name of the outer packet.
@@ -185,12 +185,16 @@ Internet-Draft          CCNx-PacketEncapsulation              March 2015
    Section 9.5.  This specifies how to generate the Client Write Key,
    Server Write Key, Client Write IV, and Server Write IV.
 
-   As per [RFC5288] for the use of AES-GCM, the GCM Nonce is composed of
-   a Salt and a Nonce_Explicit.  The Salt comes from the Client/Server
-   Write IV and the Nonce_Explicit comes from the Outer Name chunk
-   number padded to an 8-byte sequence number.  This defines the packet
-   key used for a specific chunk, and is unique in the consumer to
-   producer and producer to consumer directions.
+   The AEAD nonce (IV) is derived as specified in [TLS13].  In
+   particular, the length of the IV for each AEAD operation is set to
+   max(8 bytes, N_MAX), where N_MIN must be at least 8 bytes [RFC5116].
+   With this length, the nonce is initialized by:
+
+   1.  Padding the 64-bit per-packet AEAD sequence number to the left
+       with zeroes so that its length is equal to the IV length.
+
+   2.  This padded sequence number is then XORed with the consumer or
+       producer IV, depending on the role.
 
    TODO: Should we allow CCNxKE to specify the starting chunk number so
    it does not always start at 0?  It would need to be encoded in the
@@ -214,10 +218,6 @@ Internet-Draft          CCNx-PacketEncapsulation              March 2015
    with name NI3 in NO1, NI1 in NO2, and NI2 in NO3.  ESIC does expect
    normal CCNx processing rules to be followed for the inner packets,
    therefore we would expect at most one inner packet returned for each
-   inner Interest.  That inner packet could be either a Content Object
-   or Interest Return.
-
-
 
 
 
@@ -225,6 +225,9 @@ Mosko & Wood            Expires September 7, 2015               [Page 4]
 
 Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
+
+   inner Interest.  That inner packet could be either a Content Object
+   or Interest Return.
 
 3.1.  Outer Context Names
 
@@ -270,10 +273,7 @@ Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
    The ValidationPayload contains the AEAD authentication token.
 
-   If the Producer cannot satisfy an Inner Packet Interest, it will
-   encapsualte an InterestReturn inside an OuterPacket of PacketType
-   ContentObject.  That is, the InterestReturn is end-to-end signaling
-   about the inner context.
+
 
 
 
@@ -281,6 +281,11 @@ Mosko & Wood            Expires September 7, 2015               [Page 5]
 
 Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
+
+   If the Producer cannot satisfy an Inner Packet Interest, it will
+   encapsualte an InterestReturn inside an OuterPacket of PacketType
+   ContentObject.  That is, the InterestReturn is end-to-end signaling
+   about the inner context.
 
    If the Producer has an error with the Outer Context, it may return an
    InterestReturn for the outer context as normal for Interest
@@ -320,11 +325,6 @@ Internet-Draft          CCNx-PacketEncapsulation              March 2015
    tied to the encrypted session.  If used, we assume the compression
    protocol is session specific to avoid state snooping (e.g. such as in
    CRIME attack).
-
-
-
-
-
 
 
 
@@ -378,14 +378,14 @@ Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
 3.4.  Transport State Machine
 
-   TODO: this section needs a lot of review and implementation to make
-   sure we've covered everything that's needed.
-
    ESIC uses a state machine to manage the ephemeral session such that
    the Producer knows when the Consumer is finished with the SID.  It
    also will try to re-request packets that fail authentication before
    sending its own InterestReturn up the Sink.
 
+   The protocol begins with each side knowing the four keys (see
+   Stateless Packet Keys below), the Session ID (SID), and the routable
+   prefix PREFIX.
 
 
 
@@ -393,10 +393,6 @@ Mosko & Wood            Expires September 7, 2015               [Page 7]
 
 Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
-
-   The protocol begins with each side knowing the four keys (see
-   Stateless Packet Keys below), the Session ID (SID), and the routable
-   prefix PREFIX.
 
    The receiving process uses a replay buffer to prevent replay attacks.
    The buffer tracks the last N out-of-order verified chunks plus the
@@ -442,6 +438,10 @@ Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
       *  Authenticate the packet
 
+         +  If failed on consumer, send InterestReturn to Source with "X
+            Error" (TBD)
+
+
 
 
 
@@ -449,9 +449,6 @@ Mosko & Wood            Expires September 7, 2015               [Page 8]
 
 Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
-
-         +  If failed on consumer, send InterestReturn to Source with "X
-            Error" (TBD)
 
          +  If failed on producer, send failure message to Sink so it
             can send end-to-end InterestReturn back over channel (if
@@ -498,6 +495,9 @@ Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
    The ESIC control packet SHOULD be padded out to a length that is
    indistinguishable from other traffic in the given _direction_.
+
+
+
 
 
 
@@ -591,23 +591,23 @@ Internet-Draft          CCNx-PacketEncapsulation              March 2015
    The KeyUpdate messages function as per TLS 1.3 Sec 6.3.5.3.  Either
    side may generate a KeyUpdate message and begin transmitting with the
    new key.  The other side must update their own key and issue its own
-   KeyUpdate message.  TODO: How do we track the key generation as in
-   TLS?
+   KeyUpdate message.
 
-5.  Security Considerations
+5.  The ESIC API
 
-   It may be possible for an observer to identify which outer packets
-   contain a control (alert) message if the ACK response time shows
-   significant statistical timing different from the normal flow of
-   messages.
+   In this section we describe the ESIC API.  Before doing so, we
+   highlight some details that molded the API for both consumers and
+   consumers.
 
-   TODO.
+   o  Encrypted sessions are bound to names instead of addresses.
+      Consequently, in addition to a set of trusted keys, sessions
+      between a consumer and producer require only a name to be created.
 
-6.  References
+   o  Sessions are created by an active consumer with a passive peer
+      (producer).  Thus, the API must reflect these roles.
 
-6.1.  Normative References
-
-   [CCNxKE]   "TODO", n.d., <TODO>.
+   o  Consumers send and receive whole CCNx messages over a session.
+      Thus, simple read and write functions must be exposed via the API.
 
 
 
@@ -618,15 +618,81 @@ Mosko & Wood            Expires September 7, 2015              [Page 11]
 Internet-Draft          CCNx-PacketEncapsulation              March 2015
 
 
+   o  Sessions are not full duplex by default.  A producer must specify
+      in its ServerConfiguration construct that it wishes to send
+      interests to the consumer.  To maintain transparency, the modality
+      of the resulting session is not reflected in the API.
+
+   These observations are distilled in the following ESIC API.
+
+# @Consumer: create a secure session with a producer
+CCNxSecureSession *ccnxSecureSession_Connect(CCNxPortal *portal,
+    PARCIdentity *identity, CCNxName *servicePrefix);
+
+# @Producer: create a passive listener
+CCNxSecureSession *ccnxSecureSession_CreateServer(CCNxPortal *portal,
+    CCNxKeyExchangeConfig *config, CCNxName *servicePrefix);
+
+# @Producer: accept uni- and bi-directional sessions
+CCNxSecureSession *ccnxSecureSession_AcceptConnection(CCNxSecureSession *session);
+CCNxSecureSession *ccnxSecureSession_AcceptBidirectionalConnection(CCNxSecureSession *session);
+
+# Send a CCNx message
+# Override the outer name with the `response` parameter if needed
+void ccnxSecureSession_SendMessage(CCNxSecureSession *session,
+    CCNxTlvDictionary *message, const CCNxStackTimeout *timeout, CCNxName *response);
+
+# Receive and decapsulate a CCNx message
+# Store the outer name in the `response` parameter.
+CCNxMetaMessage *ccnxSecureSession_ReceiveMessage(CCNxSecureSession *session,
+    const CCNxStackTimeout *timeout, CCNxName **response);
+
+6.  Security Considerations
+
+   It may be possible for an observer to identify which outer packets
+   contain a control (alert) message if the ACK response time shows
+   significant statistical timing different from the normal flow of
+   messages.
+
+   TODO.
+
+7.  References
+
+7.1.  Normative References
+
+   [CCNxKE]   "CCNx Key Exchange Protocol Version 1.0", n.d.,
+              <https://github.com/parc/ccnx-keyexchange-rfc>.
+
+
+
+
+
+
+
+Mosko & Wood            Expires September 7, 2015              [Page 12]
+
+Internet-Draft          CCNx-PacketEncapsulation              March 2015
+
+
    [MESSAGES]
-              "TODO", n.d., <TODO>.
+              "CCNx Messages in TLV Format", n.d.,
+              <https://tools.ietf.org/html/draft-irtf-icnrg-
+              ccnxmessages-02>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
               <http://www.rfc-editor.org/info/rfc2119>.
 
-6.2.  Informative References
+   [RFC5116]  McGrew, D., "An Interface and Algorithms for Authenticated
+              Encryption", RFC 5116, DOI 10.17487/RFC5116, January 2008,
+              <http://www.rfc-editor.org/info/rfc5116>.
+
+   [TLS13]    RTFM, Inc, ., "The Transport Layer Security (TLS) Protocol
+              Version 1.3", n.d., <https://tools.ietf.org/html/draft-
+              ietf-tls-tls13-13>.
+
+7.2.  Informative References
 
    [RFC5288]  Salowey, J., Choudhury, A., and D. McGrew, "AES Galois
               Counter Mode (GCM) Cipher Suites for TLS", RFC 5288,
@@ -652,6 +718,18 @@ A.3.  Content Object Encapsulation Examples
 
    TODO
 
+
+
+
+
+
+
+
+Mosko & Wood            Expires September 7, 2015              [Page 13]
+
+Internet-Draft          CCNx-PacketEncapsulation              March 2015
+
+
 Authors' Addresses
 
    Marc Mosko
@@ -669,4 +747,38 @@ Authors' Addresses
 
 
 
-Mosko & Wood            Expires September 7, 2015              [Page 12]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mosko & Wood            Expires September 7, 2015              [Page 14]

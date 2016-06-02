@@ -26,13 +26,20 @@ author:
     email: christopher.wood@parc.com
 
 normative:
+    RFC5116:
     RFC2119:
+    TLS13:
+        target: https://tools.ietf.org/html/draft-ietf-tls-tls13-13
+        title: The Transport Layer Security (TLS) Protocol Version 1.3
+        author:
+            name: E. Rescorla
+            ins: RTFM, Inc.
     CCNxKE:
-        target: TODO
-        title: TODO
+        target: https://github.com/parc/ccnx-keyexchange-rfc 
+        title: CCNx Key Exchange Protocol Version 1.0
     MESSAGES:
-        target: TODO
-        title: TODO
+        target: https://tools.ietf.org/html/draft-irtf-icnrg-ccnxmessages-02
+        title: CCNx Messages in TLV Format
 
 informative:
     RFC5389:
@@ -42,9 +49,9 @@ informative:
 
 This document describes how to transport CCNx packets inside an
 encrypted session between peers that share traffic secrets, such
-as derived from CCNxKE.  The peers create an outer naming
+as derived from CCNxKE. The peers create an outer naming
 context to identify the encryption session in one direction
-between the consumer and the producer.  The consumer sends encrypted
+between the consumer and the producer. The consumer sends encrypted
 Interest messages to the producer, who responds with encrypted Content Objects.
 Inside the outer context, the consumer sends Interests with different
 names, which the producer may respond to or may send InterestReturns for.
@@ -101,7 +108,7 @@ The following terms are used:
 
 - Inner Packet: A fully-formed CCNx packet (fixed header through validation) that is
 carried encrypted inside a T_ENCAP TLV.
-- Outer Packet: A fully-formd CCNx packet that carries the outer context of an encrypted session.
+- Outer Packet: A fully-formed CCNx packet that carries the outer context of an encrypted session.
 - Outer Name: The name of the outer packet.
 - Inner Name: The name of the inner packet (not visible in transport).
 - Control channel: the use of Inner Packets to convey control signaling between encryption endpoints
@@ -117,18 +124,18 @@ specifies how to generate the Client Write Key, Server Write Key, Client Write I
 Server Write IV.
 
 The AEAD nonce (IV) is derived as specified in {{TLS13}}. In particular, the length of
-the IV for each AEAD operation is set to max(8 bytes, N_MAX), where N_MIN must be 
+the IV for each AEAD operation is set to max(8 bytes, N_MAX), where N_MIN must be
 at least 8 bytes {{RFC5116}}. With this length, the nonce is initialized by:
 
 1. Padding the 64-bit per-packet AEAD sequence number to the left with zeroes so that
 its length is equal to the IV length.
 2. This padded sequence number is then XORed with the consumer or producer IV, depending
-on the role. 
+on the role.
 
 <!-- for AES-GCM, the counter starts at zero and nonces are not re-used -->
 
 TODO: Should we allow CCNxKE to specify the starting chunk number so it does not
-always start at 0?  It would need to be encoded in the MoveToken.
+always start at 0? It would need to be encoded in the MoveToken.
 
 # Inner and Outer Contexts
 
@@ -255,9 +262,6 @@ it will verify the authentication token and if successful decrypt the T_ENCAP.
 The output of the T_ENCAP will then be passed to the Sink.
 
 ## Transport State Machine
-
-TODO: this section needs a lot of review and implementation to make sure we've
-covered everything that's needed.
 
 ESIC uses a state machine to manage the ephemeral session such that the
 Producer knows when the Consumer is finished with the SID.  It also will
@@ -399,7 +403,51 @@ back upstream a close_notify.
 
 The KeyUpdate messages function as per TLS 1.3 Sec 6.3.5.3.  Either side may generate a KeyUpdate
 message and begin transmitting with the new key.  The other side must update their own key
-and issue its own KeyUpdate message.  TODO: How do we track the key generation as in TLS?
+and issue its own KeyUpdate message.  
+
+# The ESIC API
+
+In this section we describe the ESIC API. Before doing so, we highlight some details that
+molded the API for both consumers and consumers.
+
+- Encrypted sessions are bound to names instead of addresses. Consequently, in addition to 
+a set of trusted keys, sessions between a consumer and producer require only a name to be created. 
+
+- Sessions are created by an active consumer with a passive peer (producer). Thus, the API must
+reflect these roles. 
+
+- Consumers send and receive whole CCNx messages over a session. Thus, simple read and write
+functions must be exposed via the API. 
+
+- Sessions are not full duplex by default. A producer must specify in its ServerConfiguration construct
+that it wishes to send interests to the consumer. To maintain transparency, the modality of the resulting 
+session is not reflected in the API.
+
+These observations are distilled in the following ESIC API.
+
+~~~
+# @Consumer: create a secure session with a producer
+CCNxSecureSession *ccnxSecureSession_Connect(CCNxPortal *portal, 
+    PARCIdentity *identity, CCNxName *servicePrefix);
+
+# @Producer: create a passive listener
+CCNxSecureSession *ccnxSecureSession_CreateServer(CCNxPortal *portal, 
+    CCNxKeyExchangeConfig *config, CCNxName *servicePrefix);
+
+# @Producer: accept uni- and bi-directional sessions
+CCNxSecureSession *ccnxSecureSession_AcceptConnection(CCNxSecureSession *session);
+CCNxSecureSession *ccnxSecureSession_AcceptBidirectionalConnection(CCNxSecureSession *session);
+
+# Send a CCNx message
+# Override the outer name with the `response` parameter if needed
+void ccnxSecureSession_SendMessage(CCNxSecureSession *session, 
+    CCNxTlvDictionary *message, const CCNxStackTimeout *timeout, CCNxName *response);
+
+# Receive and decapsulate a CCNx message
+# Store the outer name in the `response` parameter.
+CCNxMetaMessage *ccnxSecureSession_ReceiveMessage(CCNxSecureSession *session, 
+    const CCNxStackTimeout *timeout, CCNxName **response);
+~~~
 
 # Security Considerations
 
