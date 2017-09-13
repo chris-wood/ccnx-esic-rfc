@@ -5,8 +5,8 @@
 ICNRG Working Group                                             M. Mosko
 Internet-Draft                                                PARC, Inc.
 Intended status: Informational                                   C. Wood
-Expires: September 7, 2015               University of California Irvine
-                                                          March 06, 2015
+Expires: March 16, 2018                  University of California Irvine
+                                                      September 12, 2017
 
 
                    Encrypted Sessions In CCNx (ESIC)
@@ -42,20 +42,20 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on September 7, 2015.
+   This Internet-Draft will expire on March 16, 2018.
 
 Copyright Notice
 
-   Copyright (c) 2015 IETF Trust and the persons identified as the
+   Copyright (c) 2017 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
 
 
 
 
-Mosko & Wood            Expires September 7, 2015               [Page 1]
+Mosko & Wood             Expires March 16, 2018                 [Page 1]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Mosko & Wood            Expires September 7, 2015               [Page 2]
+Mosko & Wood             Expires March 16, 2018                 [Page 2]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    ESIC defines a new field Encapsulated (T_ENCAP) that may occur in
@@ -165,9 +165,9 @@ Internet-Draft                  CCNx-ESIC                     March 2015
 
 
 
-Mosko & Wood            Expires September 7, 2015               [Page 3]
+Mosko & Wood             Expires March 16, 2018                 [Page 3]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    o  Outer Name: The name of the outer packet.
@@ -221,9 +221,9 @@ Internet-Draft                  CCNx-ESIC                     March 2015
 
 
 
-Mosko & Wood            Expires September 7, 2015               [Page 4]
+Mosko & Wood             Expires March 16, 2018                 [Page 4]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    normal CCNx processing rules to be followed for the inner packets,
@@ -277,9 +277,9 @@ Internet-Draft                  CCNx-ESIC                     March 2015
 
 
 
-Mosko & Wood            Expires September 7, 2015               [Page 5]
+Mosko & Wood             Expires March 16, 2018                 [Page 5]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    If the Producer cannot satisfy an Inner Packet Interest, it will
@@ -333,9 +333,9 @@ Internet-Draft                  CCNx-ESIC                     March 2015
 
 
 
-Mosko & Wood            Expires September 7, 2015               [Page 6]
+Mosko & Wood             Expires March 16, 2018                 [Page 6]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    () indicates output of stage
@@ -389,9 +389,9 @@ Internet-Draft                  CCNx-ESIC                     March 2015
 
 
 
-Mosko & Wood            Expires September 7, 2015               [Page 7]
+Mosko & Wood             Expires March 16, 2018                 [Page 7]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    The receiving process uses a replay buffer to prevent replay attacks.
@@ -445,9 +445,9 @@ Internet-Draft                  CCNx-ESIC                     March 2015
 
 
 
-Mosko & Wood            Expires September 7, 2015               [Page 8]
+Mosko & Wood             Expires March 16, 2018                 [Page 8]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
          +  If failed on producer, send failure message to Sink so it
@@ -501,9 +501,9 @@ Internet-Draft                  CCNx-ESIC                     March 2015
 
 
 
-Mosko & Wood            Expires September 7, 2015               [Page 9]
+Mosko & Wood             Expires March 16, 2018                 [Page 9]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    The Payload of the Interest contains a set of TLV records using the
@@ -557,9 +557,9 @@ Internet-Draft                  CCNx-ESIC                     March 2015
 
 
 
-Mosko & Wood            Expires September 7, 2015              [Page 10]
+Mosko & Wood             Expires March 16, 2018                [Page 10]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    Consumer                                   Producer
@@ -613,9 +613,9 @@ Internet-Draft                  CCNx-ESIC                     March 2015
 
 
 
-Mosko & Wood            Expires September 7, 2015              [Page 11]
+Mosko & Wood             Expires March 16, 2018                [Page 11]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    o  Sessions are not full duplex by default.  A producer must specify
@@ -669,9 +669,9 @@ CCNxMetaMessage *ccnxSecureSession_ReceiveMessage(CCNxSecureSession *session,
 
 
 
-Mosko & Wood            Expires September 7, 2015              [Page 12]
+Mosko & Wood             Expires March 16, 2018                [Page 12]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
    [MESSAGES]
@@ -725,9 +725,9 @@ A.3.  Content Object Encapsulation Examples
 
 
 
-Mosko & Wood            Expires September 7, 2015              [Page 13]
+Mosko & Wood             Expires March 16, 2018                [Page 13]
 
-Internet-Draft                  CCNx-ESIC                     March 2015
+Internet-Draft                  CCNx-ESIC                 September 2017
 
 
 Authors' Addresses
@@ -781,4 +781,4 @@ Authors' Addresses
 
 
 
-Mosko & Wood            Expires September 7, 2015              [Page 14]
+Mosko & Wood             Expires March 16, 2018                [Page 14]
